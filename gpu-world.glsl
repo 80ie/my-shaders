@@ -36,10 +36,7 @@ float band(in float dist, in float offset, in float speed)
     float phase = dist / RING_SPACING - u_time * speed + offset;
     float wave  = sin(phase * 6.28318530718) * 0.5 + 0.5;  // -1..1 -> 0..1
     float b     = pow(wave, RING_SHARPNESS);
-
     //b *= smoothstep(0.0, 0.5, dist);  // fade in near the mouse point 
-
-
     return b;
 }
 
