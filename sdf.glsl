@@ -7,9 +7,9 @@ uniform float u_time;
 const float GRID_SIZE   = 5.0;  // cells across the short axis
 const float ROT_SPEED   = 0.2;  // radians per second
 const float CYCLE_SPEED = 0.1;  // sweep cycles per second
-const float BAND_WIDTH  = 0.3;  // stripe half-thickness, in cell units
-const float RING_SPACING   = 3.0;   // distance between ring peaks, in grid units
-const float RING_SHARPNESS = 40.0;  // higher = thinner, crisper rings
+const float BAND_WIDTH  = 0.1;  // stripe half-thickness, in cell units
+const float RING_SPACING   = 10.0;   // distance between ring peaks, in grid units
+const float RING_SHARPNESS = 50.0;  // higher = thinner, crisper rings
 
 float pcurve( float x, float a, float b ){
     float k = pow(a+b,a+b) / (pow(a,a)*pow(b,b));
@@ -37,9 +37,15 @@ float band(in float dist, in float offset, in float speed)
     float wave  = sin(phase * 6.28318530718) * 0.5 + 0.5;  // -1..1 -> 0..1
     float b     = pow(wave, RING_SHARPNESS);
 
-    //b *= smoothstep(0.0, 0.5, dist);  // fade in near the mouse point itself — optional, see below
+    //b *= smoothstep(0.0, 0.5, dist);  // fade in near the mouse point 
+
 
     return b;
+}
+
+vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d)
+{
+    return a + b * cos(6.28318530718 * (c * t + d));
 }
 
 void main()
@@ -53,7 +59,7 @@ void main()
     vec2 cellUV = gridPos - cellId;      // -0.5 .. 0.5 within the cell
 
     // ---- stage 4: rounded square ------------------------------------
-    float boxDist = sdRoundedBox(cellUV, vec2(0.4), vec4(0.3));
+    float boxDist = sdRoundedBox(cellUV, vec2(0.4), vec4(0.1));
 
     // ---- stage 5: per-cell glow -------------------------------------
     float glow = 1.0 - smoothstep(0.0, 3.0, length(cellId - mouseGridPos));
@@ -65,11 +71,15 @@ void main()
     b += band(distFromMouse, 0.33, CYCLE_SPEED);
     b += band(distFromMouse, 0.66, CYCLE_SPEED);
     
-    // ---- stage 7: combine (not yet) ---------------------------------
-    vec3 color = vec3(0.0);
+    b *= smoothstep(0.0, 0.5, length(mouseGridPos - cellId));
+    
+    // ---- stage 7: combine ---------------------------------
     boxDist = mix(0.0, 1.0, boxDist); 
 
-    color = vec3(1.0-boxDist-b*glow);
+    float intensity = 1.0 - (boxDist-b) * glow;
+    intensity = clamp(intensity, 0.0, 1.0);
 
+    //vec3 color = palette(intensity, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.33, 0.67));
+    vec3 color = vec3(intensity);
     gl_FragColor = vec4(color, 1.0);
 }
