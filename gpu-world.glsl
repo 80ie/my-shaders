@@ -59,7 +59,7 @@ void main()
     float boxDist = sdRoundedBox(cellUV, vec2(0.4), vec4(0.1));
 
     // ---- stage 5: per-cell glow -------------------------------------
-    float glow = 1.0 - smoothstep(0.0, 3.0, length(cellId - mouseGridPos));
+    float glow = 1.0 - smoothstep(0.0, 1.0, length(cellId - mouseGridPos));
 
     // ---- stage 6: rotating sweep ------------------------------------
     float distFromMouse = length(gridPos - mouseGridPos);
@@ -73,7 +73,7 @@ void main()
     // ---- stage 7: combine ---------------------------------
     boxDist = mix(0.0, 1.0, boxDist); 
 
-    float intensity = 1.0 - (boxDist-b) * glow;
+    float intensity = 1.0 - (boxDist-b) + glow;
     intensity = clamp(intensity, 0.0, 1.0);
 
     //vec3 color = palette(intensity, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.33, 0.67));
